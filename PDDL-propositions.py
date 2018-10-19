@@ -54,11 +54,18 @@ def get_predicates(action, model_name):
 # -------------------------------------------------------------------
 #####################################################################
 def pddl_to_propositions(actions, human_model):
+
+    prop_dict = {}
     for action in actions:
-
         [pos_eff, neg_eff], [pos_prec, neg_prec] = get_predicates(action, human_model)
+        prop_dict[action] = {
+            "pos_eff": pos_eff,
+            "neg_eff": neg_eff,
+            "pos_prec": pos_prec,
+            "neg_prec": neg_prec
+        }
 
-    return [pos_eff, neg_eff], [pos_prec, neg_prec]
+    return prop_dict
 
 
 #####################################################################
@@ -101,22 +108,42 @@ def propositions_to_pddl(propositions, parameters):
                                          ''.join(
                                              ['(not ({})) '.format(p) for p in actionList[key]['delete-effect']]))) for
                               key in actionList.keys()])
-
+    actionString += ")"
     print(template.replace('%OPERATORS%',actionString))
 
 
-if __name__ == '__main__':
-    human_model = pddlpy.DomainProblem("blocks-domain.pddl", "prob2.pddl")
-    actions = ["pickup", "putdown", "stack", "unstack"]
-    model_name = "human_model"
+#####################################################################
+# get_propositions_in_array()
+# -------------------------------------------------------------------
+#####################################################################
+def get_propositions_in_array(propositions_dict):
+    ret = []
+    for action in propositions_dict.keys():
+        for key in propositions_dict[action].keys():
+            for t in propositions_dict[action][key]:
+                ret.append(t)
+    return ret
 
+
+#####################################################################
+# get_parameters()
+# -------------------------------------------------------------------
+#####################################################################
+def get_parameters(model):
     parameters = {}
     for action in actions:
-        parameters[action] = list(human_model.domain.operators[action].variable_list.keys())
+        parameters[action] = list(model.domain.operators[action].variable_list.keys())
 
-    test_propositions = ["action_stack_has_add_effect_clear_?ob",
-         "action_stack_has_del_effect_clear_?ob",
-         "action_pickup_has_add_effect_test_?ob"]
+    return parameters
 
-    [pos_eff, neg_eff], [pos_prec, neg_prec] = pddl_to_propositions(actions, model_name)
-    propositions_to_pddl(test_propositions, parameters)
+
+if __name__ == '__main__':
+    actions = ["pickup", "putdown", "stack", "unstack"]
+    model_name = "human_model"
+    human_model = pddlpy.DomainProblem("blocks-domain.pddl", "prob2.pddl")
+
+    propositions_dict = pddl_to_propositions(actions, model_name)
+    array_propos = get_propositions_in_array(propositions_dict)
+
+    parameters = get_parameters(human_model)
+    propositions_to_pddl(array_propos, parameters)
