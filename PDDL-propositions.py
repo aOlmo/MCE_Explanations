@@ -48,7 +48,7 @@ def get_propositions_from_action(action, model_name):
 #####################################################################
 # pddl_to_propositions()
 #####################################################################
-def pddl_to_propositions(model_name, model):
+def pddl_to_propositions(model_name):
     # Note: We assume that human and robot actions are the same
     actions = list(human_model.operators())
 
@@ -130,16 +130,53 @@ def get_parameters(model):
         parameters[action] = list(model.domain.operators[action].variable_list.keys())
     return parameters
 
+#####################################################################
+# test_propositions_to_PDDL()
+#####################################################################
+def test_propositions_to_PDDL(human_model):
+    model_name = "human_model"
+    # Convert the PDDL objects given by pddlpy to a dictionary of propositions
+    propositions_dict = pddl_to_propositions(model_name)
+    # Convert the dictionary to an array of propositions
+    array_propos = get_propositions_in_array(propositions_dict)
 
+    # Get parameters
+    parameters = get_parameters(human_model)
+    print(propositions_to_pddl(array_propos, parameters))
+
+
+#####################################################################
+# search()
+#####################################################################
 def search(human_model, robot_model):
     # Get the differences between robot model and human's with propositions
-    pddl_to_propositions()
+    h_props = get_propositions_in_array(pddl_to_propositions("human_model"))
+    r_props = get_propositions_in_array(pddl_to_propositions("robot_model"))
 
-    # The nodes of the search tree will have one proposition at a time.
-        # If it works, we will ouput that as an explanation
+    # Get default parameters from the human or robot models
+    # Note: We have assumed that both have the same
+    parameters = get_parameters(human_model)
+
+    h_props = set(h_props)
+    r_props = set(r_props)
+
+    diffs = list(r_props.difference(h_props))
+
+    # The nodes of the search tree will have one proposition at a time:
+    # Add to the human model, one proposition and try
+    node = list(h_props)
+    for diff in diffs:
+        node.append(diff)
+        print(propositions_to_pddl(node, parameters))
+        # Execute VAL
+        # Execute FD
+        # If it works, we will output that as an explanation
 
     # If it does not work, we will try adding one proposition and the next one
     pass
+
+
+
 
 if __name__ == '__main__':
     models_folder = "models/"
@@ -148,14 +185,7 @@ if __name__ == '__main__':
     human_model = pddlpy.DomainProblem(models_folder+"human-model-simple.pddl", models_folder+"prob.pddl")
     robot_model = pddlpy.DomainProblem(models_folder+"robot-model.pddl", models_folder+"prob.pddl")
 
-    propositions_dict = pddl_to_propositions(model_name, human_model)
-    array_propos = get_propositions_in_array(propositions_dict)
-
-
-    parameters = get_parameters(human_model)
-    print(propositions_to_pddl(array_propos, parameters))
-
-    exit()
+    # test_propositions_to_PDDL(human_model)
 
     # Perform the search for the Minimum Explanation
     search(human_model, robot_model)
