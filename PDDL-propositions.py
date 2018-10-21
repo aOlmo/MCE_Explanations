@@ -6,21 +6,17 @@ template = """
   (:requirements :strips)
 (:predicates (clear ?x)
              (on-table ?x)
-             (arm-empty)
              (holding ?x)
              (on ?x ?y))
 
-%OPERATORS%"""
+%OPERATORS%)"""
 
 
 #####################################################################
-# get_predicates(action, human_model)
-# -------------------------------------------------------------------
+# get_propositions_from_model()
 #####################################################################
-def get_predicates(action, model_name):
-
+def get_propositions_from_action(action, model_name):
     final = []
-
     for eff_prec in ["effect", "precondition"]:
 
         if eff_prec == "effect":
@@ -51,13 +47,14 @@ def get_predicates(action, model_name):
 
 #####################################################################
 # pddl_to_propositions()
-# -------------------------------------------------------------------
 #####################################################################
-def pddl_to_propositions(actions, human_model):
+def pddl_to_propositions(model_name, model):
+    # Note: We assume that human and robot actions are the same
+    actions = list(human_model.operators())
 
     prop_dict = {}
     for action in actions:
-        [pos_eff, neg_eff], [pos_prec, neg_prec] = get_predicates(action, human_model)
+        [pos_eff, neg_eff], [pos_prec, neg_prec] = get_propositions_from_action(action, model_name)
         prop_dict[action] = {
             "pos_eff": pos_eff,
             "neg_eff": neg_eff,
@@ -69,8 +66,7 @@ def pddl_to_propositions(actions, human_model):
 
 
 #####################################################################
-# def propositions_to_pddl(actions, pos_eff, neg_eff, pos_prec, neg_prec)
-# -------------------------------------------------------------------
+# def propositions_to_pddl()
 #####################################################################
 def propositions_to_pddl(propositions, parameters):
     actionList = {}
@@ -108,13 +104,11 @@ def propositions_to_pddl(propositions, parameters):
                                          ''.join(
                                              ['(not ({})) '.format(p) for p in actionList[key]['delete-effect']]))) for
                               key in actionList.keys()])
-    actionString += ")"
-    print(template.replace('%OPERATORS%',actionString))
+    return template.replace('%OPERATORS%',actionString)
 
 
 #####################################################################
 # get_propositions_in_array()
-# -------------------------------------------------------------------
 #####################################################################
 def get_propositions_in_array(propositions_dict):
     ret = []
@@ -127,23 +121,41 @@ def get_propositions_in_array(propositions_dict):
 
 #####################################################################
 # get_parameters()
-# -------------------------------------------------------------------
 #####################################################################
 def get_parameters(model):
+    actions = list(model.operators())
+
     parameters = {}
     for action in actions:
         parameters[action] = list(model.domain.operators[action].variable_list.keys())
-
     return parameters
 
 
-if __name__ == '__main__':
-    actions = ["pickup", "putdown", "stack", "unstack"]
-    model_name = "human_model"
-    human_model = pddlpy.DomainProblem("blocks-domain.pddl", "prob2.pddl")
+def search(human_model, robot_model):
+    # Get the differences between robot model and human's with propositions
+    pddl_to_propositions()
 
-    propositions_dict = pddl_to_propositions(actions, model_name)
+    # The nodes of the search tree will have one proposition at a time.
+        # If it works, we will ouput that as an explanation
+
+    # If it does not work, we will try adding one proposition and the next one
+    pass
+
+if __name__ == '__main__':
+    models_folder = "models/"
+    model_name = "human_model"
+
+    human_model = pddlpy.DomainProblem(models_folder+"human-model-simple.pddl", models_folder+"prob.pddl")
+    robot_model = pddlpy.DomainProblem(models_folder+"robot-model.pddl", models_folder+"prob.pddl")
+
+    propositions_dict = pddl_to_propositions(model_name, human_model)
     array_propos = get_propositions_in_array(propositions_dict)
 
+
     parameters = get_parameters(human_model)
-    propositions_to_pddl(array_propos, parameters)
+    print(propositions_to_pddl(array_propos, parameters))
+
+    exit()
+
+    # Perform the search for the Minimum Explanation
+    search(human_model, robot_model)
