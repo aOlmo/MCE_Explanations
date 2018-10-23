@@ -167,7 +167,7 @@ def get_distance():
 class Problem():
     def __init__(self):
         # TODO: The human_model and robot_model are taken
-        # from the outter scope. This can be improved
+        # TODO: from the outter scope. This can be improved
         self.human_model = human_model
         self.robot_model = robot_model
         self.dist = get_distance()
@@ -194,21 +194,25 @@ class Problem():
         return False
 
 
-    def write_domain_file_from_state(self, state, tmp_state_file, problem_file):
-        tmp_domain = open(tmp_state_file, "w")
-        tmp_problem = open(problem_file)
+    def write_domain_file_from_state(self, state, domain_file, problem_file):
+        domain = open(domain_file, "w")
+        pddl_domain = propositions_to_pddl(state, parameters)
 
-        pddl_state = propositions_to_pddl(state, parameters)
-        tmp_domain.write(pddl_state)
+        domain.write(pddl_domain)
+        domain.close()
 
-        tmp_domain.close()
-        tmp_domain = open(tmp_state_file, "r")
+        domain = open(domain_file)
+        problem = open(problem_file)
 
-        return tmp_domain.read(), tmp_problem.read()
+        return domain.read(), problem.read()
 
     def isGoal(self, state):
-        tmp_domain, tmp_problem = self.write_domain_file_from_state(state, tmp_state_file, problem_file)
+        # Write the domain and problem files to use them later in FD and VAL
+        self.write_domain_file_from_state(state, tmp_state_file, problem_file)
+
+        # Validate the plan given the current state and problem files and the grounded plan (pregenerated)
         feasibility_flag = self.validate_plan(tmp_state_file, problem_file, self.groundedRobotPlanFile)
+
         if not feasibility_flag:
             plan = []
             return (False, plan)
@@ -249,23 +253,19 @@ class Problem():
     def heuristic(self, state):
         return 0.0
 
-
-
-
 ####################################################
 # ------------------------------------------------ #
 ####################################################
-
-
 
 
 ####################################################
 #                       MAIN                       #
 ####################################################
 if __name__ == '__main__':
+
     models_folder = "models/"
     model_name = "human_model"
-    tmp_state_file = "models/temp_state.pddl"
+    tmp_state_file = "models/tmp_state.pddl"
     problem_file = "models/prob.pddl"
 
     human_model = pddlpy.DomainProblem(models_folder+"human-model-simple.pddl", models_folder+"prob.pddl")
@@ -274,7 +274,5 @@ if __name__ == '__main__':
     # Get default parameters from the human or robot models
     # Note: We have assumed that both have the same
     parameters = get_parameters(human_model)
-
     p = Problem()
-
     astarSearch(p)
