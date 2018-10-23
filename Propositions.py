@@ -275,10 +275,6 @@ if __name__ == '__main__':
     # Note: We have assumed that both have the same
     parameters = get_parameters(human_model)
 
-    c = [['action_pickup_has_del_effect_on-table_?ob', 'action_pickup_has_add_effect_holding_?ob', 'action_unstack_has_add_precondition_clear_?ob', 'action_unstack_has_del_effect_on_?ob_?underob', 'action_pickup_has_add_precondition_clear_?ob', 'action_putdown_has_add_precondition_holding_?ob', 'action_unstack_has_add_effect_clear_?underob', 'action_unstack_has_add_effect_holding_?ob', 'action_pickup_has_del_effect_clear_?ob', 'action_stack_has_add_precondition_holding_?ob', 'action_stack_has_add_effect_on_?ob_?underob', 'action_stack_has_del_effect_holding_?ob', 'action_stack_has_del_effect_clear_?underob', 'action_putdown_has_del_effect_holding_?ob', 'action_putdown_has_add_effect_on-table_?ob', 'action_unstack_has_add_precondition_on_?ob_?underob', 'action_unstack_has_del_effect_clear_?ob', 'action_stack_has_add_precondition_clear_?underob', 'action_putdown_has_add_effect_clear_?ob', 'action_stack_has_add_effect_clear_?ob'], ['action_stack_has_add_precondition_holding_?ob']]
-
-    # print(propositions_to_pddl(c[0], parameters))
-
     p = Problem()
 
     astarSearch(p)

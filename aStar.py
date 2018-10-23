@@ -1,9 +1,5 @@
 from queue import PriorityQueue
 
-####################################################
-#                    A* SEARCH                     #
-####################################################
-
 def astarSearch(problem):
     startState = problem.getStartState()
     fringe = PriorityQueue()
@@ -40,7 +36,3 @@ def astarSearch(problem):
                 fringe.put((problem.heuristic(candidate_node[0]) + len(new_node[1]), new_node))
 
     return None
-
-####################################################
-# ------------------------------------------------ #
-####################################################
