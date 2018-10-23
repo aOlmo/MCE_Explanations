@@ -12,7 +12,7 @@ def astarSearch(problem):
     while not fringe.empty():
 
         node = fringe.get()[1]
-        goal_check, old_plan = problem.isGoal(node[0])
+        goal_check, old_plan = problem.is_goal(node[0])
         if goal_check:
             print("Goal Found! Number of Nodes Expanded =", numberOfNodesExpanded)
             print(node)

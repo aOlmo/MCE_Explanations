@@ -1,9 +1,3 @@
-import os
-import copy
-import pddlpy
-from aStar import astarSearch
-from problem import Problem
-
 template = """
 (define (domain blocksworld)
   (:requirements :strips)
@@ -14,265 +8,140 @@ template = """
 
 %OPERATORS%)"""
 
-
-#####################################################################
-# get_propositions_from_model()
-#####################################################################
-def get_propositions_from_action(action, model_name):
-    final = []
-    for eff_prec in ["effect", "precondition"]:
-
-        if eff_prec == "effect":
-            operator = model_name+".domain.operators[action].effect"
-        else:
-            operator = model_name+".domain.operators[action].precondition"
-
-        pos_neg_precs = []
-        for add_del in ["add", "del"]:
-            preds = []
-            if add_del == "add":
-                list_eff = eval(operator+"_pos")
-            else:
-                list_eff = eval(operator+"_neg")
-
-            for atom in list_eff:
-                pred = atom.predicate
-                aux = ""
-                for i in pred:
-                    aux += "_" + i
-
-                preds.append("action_"+action+"_has_"+add_del+"_"+eff_prec+aux)
-            pos_neg_precs.append(preds)
-        final.append(pos_neg_precs)
-
-    return final
-
-
-#####################################################################
-# pddl_to_propositions()
-#####################################################################
-def pddl_to_propositions(model_name):
-    # Note: We assume that human and robot actions are the same
-    actions = list(human_model.operators())
-
-    prop_dict = {}
-    for action in actions:
-        [pos_eff, neg_eff], [pos_prec, neg_prec] = get_propositions_from_action(action, model_name)
-        prop_dict[action] = {
-            "pos_eff": pos_eff,
-            "neg_eff": neg_eff,
-            "pos_prec": pos_prec,
-            "neg_prec": neg_prec
-        }
-
-    return prop_dict
-
-
-#####################################################################
-# def propositions_to_pddl()
-#####################################################################
-def propositions_to_pddl(propositions, parameters):
-    actionList = {}
-    for prop in propositions:
-        aux = prop.split("_")
-        action = aux[1]
-        add_del = aux[3]
-        effect_prec = aux[4]
-        objects = " ".join(aux[5:])
-
-        if not actionList.get(action):
-            actionList[action] = {
-                "parameters": " ".join(parameters[action]),
-                "precondition": [],
-                "negprecondition": [],
-                "add-effect": [],
-                "delete-effect": []
-            }
-
-        if add_del == "add" and effect_prec == "precondition":
-            actionList[action]['precondition'].append(objects)
-        if add_del == "del" and effect_prec == "precondition":
-            actionList[action]['negprecondition'].append(objects)
-        if add_del == "add" and effect_prec == "effect":
-            actionList[action]['add-effect'].append(objects)
-        if add_del == "del" and effect_prec == "effect":
-            actionList[action]['delete-effect'].append(objects)
-
-    actionString = '\n'.join(['(:action {}\n  :parameters ({})\n  :precondition (and {})\n  :effect (and {}))\n'
-                             .format(key, actionList[key]['parameters'],
-                                     ''.join(['({}) '.format(p) for p in actionList[key]['precondition']]) + '' +
-                                     ''.join(['(not ({})) '.format(p) for p in actionList[key]['negprecondition']]),
-                                     '{}{}'.format(
-                                         ''.join(['({}) '.format(p) for p in actionList[key]['add-effect']]),
-                                         ''.join(
-                                             ['(not ({})) '.format(p) for p in actionList[key]['delete-effect']]))) for
-                              key in actionList.keys()])
-    return template.replace('%OPERATORS%',actionString)
-
-
-#####################################################################
-# get_propositions_in_array()
-#####################################################################
-def get_propositions_in_array(propositions_dict):
-    ret = []
-    for action in propositions_dict.keys():
-        for key in propositions_dict[action].keys():
-            for t in propositions_dict[action][key]:
-                ret.append(t)
-    return ret
-
-
-#####################################################################
-# get_parameters()
-#####################################################################
-def get_parameters(model):
-    actions = list(model.operators())
-
-    parameters = {}
-    for action in actions:
-        parameters[action] = list(model.domain.operators[action].variable_list.keys())
-    return parameters
-
-#####################################################################
-# test_propositions_to_PDDL()
-#####################################################################
-def test_propositions_to_PDDL(human_model):
-    model_name = "human_model"
-    # Convert the PDDL objects given by pddlpy to a dictionary of propositions
-    propositions_dict = pddl_to_propositions(model_name)
-    # Convert the dictionary to an array of propositions
-    array_propos = get_propositions_in_array(propositions_dict)
-
-    # Get parameters
-    parameters = get_parameters(human_model)
-    print(propositions_to_pddl(array_propos, parameters))
-
-
-
-def get_distance():
-    h_props = get_propositions_in_array(pddl_to_propositions("human_model"))
-    r_props = get_propositions_in_array(pddl_to_propositions("robot_model"))
-
-    h_props = set(h_props)
-    r_props = set(r_props)
-
-    diffs = list(r_props.difference(h_props))
-
-    return len(diffs)
-
-
-####################################################
-#                   PROBLEM CLASS                  #
-####################################################
-class Problem():
-    def __init__(self):
-        # TODO: The human_model and robot_model are taken
-        # TODO: from the outter scope. This can be improved
+class Propositions(object):
+    def __init__(self, human_model, robot_model, hm_name, rm_name):
         self.human_model = human_model
         self.robot_model = robot_model
-        self.dist = get_distance()
-        self.startState = get_propositions_in_array(pddl_to_propositions("human_model"))
-        self.goalState = get_propositions_in_array(pddl_to_propositions("robot_model"))
-        self.currState = self.startState
-        self.cost = self.get_plan("models/robot-model.pddl", "models/prob.pddl")[1]
-        self.groundedRobotPlanFile = "models/grounded_robot_plan"
+        self.hm_name = hm_name
+        self.rm_name = rm_name
 
-    def get_plan(self, domain_file, problem_file):
-        output = os.popen("./scripts/fdplan.sh {} {}".format(domain_file, problem_file)).read().strip()
-        plan = [item.strip() for item in output.split('\n')] if output != '' else []
-
-        with open("sas_plan", "r") as cost:
-            cost_number = cost.read().split("cost = ")[1][0]
-
-        return plan, cost_number
-
-    def validate_plan(self, domain_file, problem_file, plan_file):
-        output = os.popen("./scripts/valplan.sh {} {} {} "
-                          .format(domain_file, problem_file, plan_file)).read().strip()
-        if "successfully" in output:
-            return True
-        return False
+        # Note: Assuming that H and R have the same parameters/actions
+        self.parameters = self.get_parameters(human_model)
+        self.actions = list(human_model.operators())
 
 
-    def write_domain_file_from_state(self, state, domain_file, problem_file):
-        domain = open(domain_file, "w")
-        pddl_domain = propositions_to_pddl(state, parameters)
+    #####################################################################
+    # get_propositions_from_model()
+    #####################################################################
+    def get_propositions_from_action(self, action, model_name):
+        final = []
+        for eff_prec in ["effect", "precondition"]:
 
-        domain.write(pddl_domain)
-        domain.close()
+            if eff_prec == "effect":
+                operator = "self." + model_name + ".domain.operators[action].effect"
+            else:
+                operator = "self." + model_name + ".domain.operators[action].precondition"
 
-        domain = open(domain_file)
-        problem = open(problem_file)
+            pos_neg_precs = []
+            for add_del in ["add", "del"]:
+                preds = []
+                if add_del == "add":
+                    list_eff = eval(operator + "_pos")
+                else:
+                    list_eff = eval(operator + "_neg")
 
-        return domain.read(), problem.read()
+                for atom in list_eff:
+                    pred = atom.predicate
+                    aux = ""
+                    for i in pred:
+                        aux += "_" + i
 
-    def isGoal(self, state):
-        # Write the domain and problem files to use them later in FD and VAL
-        self.write_domain_file_from_state(state, tmp_state_file, problem_file)
+                    preds.append("action_" + action + "_has_" + add_del + "_" + eff_prec + aux)
+                pos_neg_precs.append(preds)
+            final.append(pos_neg_precs)
 
-        # Validate the plan given the current state and problem files and the grounded plan (pregenerated)
-        feasibility_flag = self.validate_plan(tmp_state_file, problem_file, self.groundedRobotPlanFile)
+        return final
 
-        if not feasibility_flag:
-            plan = []
-            return (False, plan)
+    #####################################################################
+    # pddl_to_propositions()
+    #####################################################################
+    def pddl_to_propositions(self, model_name):
+        prop_dict = {}
+        for action in self.actions:
+            [pos_eff, neg_eff], [pos_prec, neg_prec] = self.get_propositions_from_action(action, model_name)
+            prop_dict[action] = {
+                "pos_eff": pos_eff,
+                "neg_eff": neg_eff,
+                "pos_prec": pos_prec,
+                "neg_prec": neg_prec
+            }
 
-        plan, cost = self.get_plan(tmp_state_file, problem_file)
-        optimality_flag = cost == self.cost
-        return (optimality_flag, plan)
+        return prop_dict
 
-    def getSuccessors(self, node, old_plan=None):
-        # if self.heuristic_flag:
-        # return self.heuristic_successors(node, old_plan)
-        return self.ordinary_successors(node)
+    #####################################################################
+    # def propositions_to_pddl()
+    #####################################################################
+    def propositions_to_pddl(self, propositions):
+        actionList = {}
+        for prop in propositions:
+            aux = prop.split("_")
+            action = aux[1]
+            add_del = aux[3]
+            effect_prec = aux[4]
+            objects = " ".join(aux[5:])
 
-    def ordinary_successors(self, node, old_plan = None):
-        listOfSuccessors = []
+            if not actionList.get(action):
+                actionList[action] = {
+                    "parameters": " ".join(self.parameters[action]),
+                    "precondition": [],
+                    "negprecondition": [],
+                    "add-effect": [],
+                    "delete-effect": []
+                }
 
-        state = set(node[0])
-        ground_state = set(copy.copy(self.goalState))
+            if add_del == "add" and effect_prec == "precondition":
+                actionList[action]['precondition'].append(objects)
+            if add_del == "del" and effect_prec == "precondition":
+                actionList[action]['negprecondition'].append(objects)
+            if add_del == "add" and effect_prec == "effect":
+                actionList[action]['add-effect'].append(objects)
+            if add_del == "del" and effect_prec == "effect":
+                actionList[action]['delete-effect'].append(objects)
 
-        add_set = ground_state.difference(state)
-        del_set = state.difference(ground_state)
+        actionString = '\n'.join(['(:action {}\n  :parameters ({})\n  :precondition (and {})\n  :effect (and {}))\n'
+                                 .format(key, actionList[key]['parameters'],
+                                         ''.join(['({}) '.format(p) for p in actionList[key]['precondition']]) + '' +
+                                         ''.join(['(not ({})) '.format(p) for p in actionList[key]['negprecondition']]),
+                                         '{}{}'.format(
+                                             ''.join(['({}) '.format(p) for p in actionList[key]['add-effect']]),
+                                             ''.join(
+                                                 ['(not ({})) '.format(p) for p in actionList[key]['delete-effect']])))
+                                  for
+                                  key in actionList.keys()])
+        return template.replace('%OPERATORS%', actionString)
 
-        for item in add_set:
-            new_state = copy.deepcopy(state)
-            new_state.add(item)
-            listOfSuccessors.append([list(new_state), item])
+    #####################################################################
+    # get_propositions_in_array()
+    #####################################################################
+    def get_propositions_in_array(self, propositions_dict):
+        ret = []
+        for action in propositions_dict.keys():
+            for key in propositions_dict[action].keys():
+                for t in propositions_dict[action][key]:
+                    ret.append(t)
+        return ret
 
-        for item in del_set:
-            new_state = copy.deepcopy(state)
-            new_state.remove(item)
-            listOfSuccessors.append([list(new_state), item])
+    #####################################################################
+    # get_parameters()
+    #####################################################################
+    def get_parameters(self, model):
+        actions = list(model.operators())
 
-        return listOfSuccessors
+        parameters = {}
+        for action in actions:
+            parameters[action] = list(model.domain.operators[action].variable_list.keys())
+        return parameters
 
-    def getStartState(self):
-        return self.startState
+    #####################################################################
+    # get_distance()
+    #####################################################################
+    def get_distance(self):
+        h_props = self.get_propositions_in_array(self.pddl_to_propositions(self.hm_name))
+        r_props = self.get_propositions_in_array(self.pddl_to_propositions(self.rm_name))
 
-    def heuristic(self, state):
-        return 0.0
+        h_props = set(h_props)
+        r_props = set(r_props)
 
-####################################################
-# ------------------------------------------------ #
-####################################################
+        diffs = list(r_props.difference(h_props))
 
-
-####################################################
-#                       MAIN                       #
-####################################################
-if __name__ == '__main__':
-
-    models_folder = "models/"
-    model_name = "human_model"
-    tmp_state_file = "models/tmp_state.pddl"
-    problem_file = "models/prob.pddl"
-
-    human_model = pddlpy.DomainProblem(models_folder+"human-model-simple.pddl", models_folder+"prob.pddl")
-    robot_model = pddlpy.DomainProblem(models_folder+"robot-model.pddl", models_folder+"prob.pddl")
-
-    # Get default parameters from the human or robot models
-    # Note: We have assumed that both have the same
-    parameters = get_parameters(human_model)
-    p = Problem()
-    astarSearch(p)
+        return len(diffs)
