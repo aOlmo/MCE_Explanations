@@ -1,5 +1,8 @@
+import os
+import copy
 import pddlpy
-
+from aStar import astarSearch
+from problem import Problem
 
 template = """
 (define (domain blocksworld)
@@ -145,37 +148,6 @@ def test_propositions_to_PDDL(human_model):
     print(propositions_to_pddl(array_propos, parameters))
 
 
-#####################################################################
-# search()
-#####################################################################
-# def search(human_model):
-#     # Get the differences between robot model and human's with propositions
-#     h_props = get_propositions_in_array(pddl_to_propositions("human_model"))
-#     r_props = get_propositions_in_array(pddl_to_propositions("robot_model"))
-#
-#     # Get default parameters from the human or robot models
-#     # Note: We have assumed that both have the same
-#     parameters = get_parameters(human_model)
-#
-#     h_props = set(h_props)
-#     r_props = set(r_props)
-#
-#     diffs = list(r_props.difference(h_props))
-#
-#     # The nodes of the search tree will have one proposition at a time:
-#     # Add to the human model, one proposition and try
-#     # TODO: DO BFS
-#     node = list(h_props)
-#     for diff in diffs:
-#         node.append(diff)
-#         print(propositions_to_pddl(node, parameters))
-#         # Execute VAL
-#         # Execute FD
-#         # If it works, we will output that as an explanation
-#         # If it does not work, we will try adding one proposition and the next one
-#
-#     pass
-
 
 def get_distance():
     h_props = get_propositions_in_array(pddl_to_propositions("human_model"))
@@ -189,11 +161,6 @@ def get_distance():
     return len(diffs)
 
 
-
-
-
-
-
 ####################################################
 #                   PROBLEM CLASS                  #
 ####################################################
@@ -204,23 +171,61 @@ class Problem():
         self.human_model = human_model
         self.robot_model = robot_model
         self.dist = get_distance()
-        self.startState = pddl_to_propositions("human_model")
-        self.goalState = pddl_to_propositions("robot_model")
+        self.startState = get_propositions_in_array(pddl_to_propositions("human_model"))
+        self.goalState = get_propositions_in_array(pddl_to_propositions("robot_model"))
+        self.currState = self.startState
+        self.cost = self.get_plan("models/robot-model.pddl", "models/prob.pddl")[1]
+        self.groundedRobotPlanFile = "models/grounded_robot_plan"
 
-    def getStartState(self):
-        return self.startState
+    def get_plan(self, domain_file, problem_file):
+        output = os.popen("./scripts/fdplan.sh {} {}".format(domain_file, problem_file)).read().strip()
+        plan = [item.strip() for item in output.split('\n')] if output != '' else []
 
-    def heuristic(self, state):
-        return 0.0
+        with open("sas_plan", "r") as cost:
+            cost_number = cost.read().split("cost = ")[1][0]
+
+        return plan, cost_number
+
+    def validate_plan(self, domain_file, problem_file, plan_file):
+        output = os.popen("./scripts/valplan.sh {} {} {} "
+                          .format(domain_file, problem_file, plan_file)).read().strip()
+        if "successfully" in output:
+            return True
+        return False
+
+
+    def write_domain_file_from_state(self, state, tmp_state_file, problem_file):
+        tmp_domain = open(tmp_state_file, "w")
+        tmp_problem = open(problem_file)
+
+        pddl_state = propositions_to_pddl(state, parameters)
+        tmp_domain.write(pddl_state)
+
+        tmp_domain.close()
+        tmp_domain = open(tmp_state_file, "r")
+
+        return tmp_domain.read(), tmp_problem.read()
 
     def isGoal(self, state):
+        tmp_domain, tmp_problem = self.write_domain_file_from_state(state, tmp_state_file, problem_file)
+        feasibility_flag = self.validate_plan(tmp_state_file, problem_file, self.groundedRobotPlanFile)
+        if not feasibility_flag:
+            plan = []
+            return (False, plan)
 
+        plan, cost = self.get_plan(tmp_state_file, problem_file)
+        optimality_flag = cost == self.cost
+        return (optimality_flag, plan)
 
+    def getSuccessors(self, node, old_plan=None):
+        # if self.heuristic_flag:
+        # return self.heuristic_successors(node, old_plan)
+        return self.ordinary_successors(node)
 
-    def getSuccessors(self, node):
+    def ordinary_successors(self, node, old_plan = None):
         listOfSuccessors = []
 
-        state = set(node)
+        state = set(node[0])
         ground_state = set(copy.copy(self.goalState))
 
         add_set = ground_state.difference(state)
@@ -238,13 +243,18 @@ class Problem():
 
         return listOfSuccessors
 
+    def getStartState(self):
+        return self.startState
+
+    def heuristic(self, state):
+        return 0.0
+
+
+
 
 ####################################################
 # ------------------------------------------------ #
 ####################################################
-
-
-
 
 
 
@@ -255,14 +265,20 @@ class Problem():
 if __name__ == '__main__':
     models_folder = "models/"
     model_name = "human_model"
+    tmp_state_file = "models/temp_state.pddl"
+    problem_file = "models/prob.pddl"
 
     human_model = pddlpy.DomainProblem(models_folder+"human-model-simple.pddl", models_folder+"prob.pddl")
     robot_model = pddlpy.DomainProblem(models_folder+"robot-model.pddl", models_folder+"prob.pddl")
 
-    a = Problem()
-    print(a.dist)
+    # Get default parameters from the human or robot models
+    # Note: We have assumed that both have the same
+    parameters = get_parameters(human_model)
 
-    # test_propositions_to_PDDL(human_model)
+    c = [['action_pickup_has_del_effect_on-table_?ob', 'action_pickup_has_add_effect_holding_?ob', 'action_unstack_has_add_precondition_clear_?ob', 'action_unstack_has_del_effect_on_?ob_?underob', 'action_pickup_has_add_precondition_clear_?ob', 'action_putdown_has_add_precondition_holding_?ob', 'action_unstack_has_add_effect_clear_?underob', 'action_unstack_has_add_effect_holding_?ob', 'action_pickup_has_del_effect_clear_?ob', 'action_stack_has_add_precondition_holding_?ob', 'action_stack_has_add_effect_on_?ob_?underob', 'action_stack_has_del_effect_holding_?ob', 'action_stack_has_del_effect_clear_?underob', 'action_putdown_has_del_effect_holding_?ob', 'action_putdown_has_add_effect_on-table_?ob', 'action_unstack_has_add_precondition_on_?ob_?underob', 'action_unstack_has_del_effect_clear_?ob', 'action_stack_has_add_precondition_clear_?underob', 'action_putdown_has_add_effect_clear_?ob', 'action_stack_has_add_effect_clear_?ob'], ['action_stack_has_add_precondition_holding_?ob']]
 
-    # Perform the search for the Minimum Explanation
-    # search(human_model, robot_model)
+    # print(propositions_to_pddl(c[0], parameters))
+
+    p = Problem()
+
+    astarSearch(p)
