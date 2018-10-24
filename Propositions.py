@@ -1,4 +1,4 @@
-template = """
+orig_template = """
 (define (domain blocksworld)
   (:requirements :strips)
 (:predicates (clear ?x)
@@ -7,6 +7,18 @@ template = """
              (on ?x ?y))
 
 %OPERATORS%)"""
+
+template = """
+(define (domain blocksworld)
+  (:requirements :strips)
+  (:predicates (on ?x ?y)
+           (ontable ?x)
+           (clear ?x)
+           (handempty)
+           (holding ?x))
+
+%OPERATORS%)
+"""
 
 class Propositions(object):
     def __init__(self, human_model, robot_model, hm_name, rm_name):
@@ -19,10 +31,6 @@ class Propositions(object):
         self.parameters = self.get_parameters(human_model)
         self.actions = list(human_model.operators())
 
-
-    #####################################################################
-    # get_propositions_from_model()
-    #####################################################################
     def get_propositions_from_action(self, action, model_name):
         final = []
         for eff_prec in ["effect", "precondition"]:
@@ -52,9 +60,6 @@ class Propositions(object):
 
         return final
 
-    #####################################################################
-    # pddl_to_propositions()
-    #####################################################################
     def pddl_to_propositions(self, model_name):
         prop_dict = {}
         for action in self.actions:
@@ -68,9 +73,6 @@ class Propositions(object):
 
         return prop_dict
 
-    #####################################################################
-    # def propositions_to_pddl()
-    #####################################################################
     def propositions_to_pddl(self, propositions):
         actionList = {}
         for prop in propositions:
@@ -106,13 +108,10 @@ class Propositions(object):
                                              ''.join(['({}) '.format(p) for p in actionList[key]['add-effect']]),
                                              ''.join(
                                                  ['(not ({})) '.format(p) for p in actionList[key]['delete-effect']])))
-                                  for
-                                  key in actionList.keys()])
+                                  for key in actionList.keys()])
+
         return template.replace('%OPERATORS%', actionString)
 
-    #####################################################################
-    # get_propositions_in_array()
-    #####################################################################
     def get_propositions_in_array(self, propositions_dict):
         ret = []
         for action in propositions_dict.keys():
@@ -121,9 +120,6 @@ class Propositions(object):
                     ret.append(t)
         return ret
 
-    #####################################################################
-    # get_parameters()
-    #####################################################################
     def get_parameters(self, model):
         actions = list(model.operators())
 
@@ -132,9 +128,6 @@ class Propositions(object):
             parameters[action] = list(model.domain.operators[action].variable_list.keys())
         return parameters
 
-    #####################################################################
-    # get_distance()
-    #####################################################################
     def get_distance(self):
         h_props = self.get_propositions_in_array(self.pddl_to_propositions(self.hm_name))
         r_props = self.get_propositions_in_array(self.pddl_to_propositions(self.rm_name))

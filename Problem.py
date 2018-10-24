@@ -26,12 +26,12 @@ class Problem(object):
         plan = [item.strip() for item in output.split('\n')] if output != '' else []
 
         with open("sas_plan", "r") as cost:
-            cost_number = cost.read().split("cost = ")[1][0]
+            cost_val = cost.read().split("cost = ")[1][0]
 
-        return plan, cost_number
+        return plan, cost_val
 
     def validate_plan(self, domain_file, problem_file, plan_file):
-        output = os.popen("./scripts/valplan.sh {} {} {} "
+        output = os.popen("./scripts/valplan.sh {} {} {}"
                           .format(domain_file, problem_file, plan_file)).read().strip()
         if "successfully" in output:
             return True
