@@ -1,15 +1,5 @@
-orig_template = """
-(define (domain blocksworld)
-  (:requirements :strips)
-(:predicates (clear ?x)
-             (on-table ?x)
-             (holding ?x)
-             (on ?x ?y))
-
-%OPERATORS%)"""
-
 template = """
-(define (domain blocksworld)
+(define (domain BLOCKS)
   (:requirements :strips)
   (:predicates (on ?x ?y)
            (ontable ?x)
@@ -19,6 +9,8 @@ template = """
 
 %OPERATORS%)
 """
+
+# template = open("models/template.pddl").read()
 
 class Propositions(object):
     def __init__(self, human_model, robot_model, hm_name, rm_name):

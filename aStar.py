@@ -15,7 +15,8 @@ def astarSearch(problem):
         goal_check, old_plan = problem.is_goal(node[0])
         if goal_check:
             print("Goal Found! Number of Nodes Expanded =", numberOfNodesExpanded)
-            print(node)
+            print("Explanations:"+str(node[1]))
+            print("# Explanations: ", len(node[1]))
             return node[1]
 
         if frozenset(node[0]) not in closed:
@@ -26,7 +27,7 @@ def astarSearch(problem):
 
             numberOfNodesExpanded += 1
 
-            if not numberOfNodesExpanded % 100:
+            if not numberOfNodesExpanded % 50:
                 print("Number of Nodes Expanded =", numberOfNodesExpanded)
 
             while successor_list:

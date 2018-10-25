@@ -19,32 +19,40 @@ def test_propositions_to_PDDL(human_model, robot_model, hm_name, rm_name):
 
 
 if __name__ == '__main__':
+
     models_folder = "models/"
-    test_folder = "models/test/"
+    test_folder = models_folder+"blocksworld/blocks"
     tmp_state_file = models_folder+"tmp_state.pddl"
 
-    # pddl_rm = models_folder+"test-robot-model.pddl"
-    # pddl_prob = models_folder+"test-prob.pddl"
-    # pddl_rplan = models_folder+"test-grounded_robot_plan"
-
-    pddl_hm = test_folder + "human-model.pddl"
-    pddl_rm = test_folder + "robot-model.pddl"
-    pddl_prob = test_folder + "prob.pddl"
-    pddl_rplan = test_folder + "grounded_robot_plan"
     # Note: since we are using dynamic assignment of variables: hm_name and rm_name
     # have to be the names of the human and robot models variables.
     hm_name = "human_model"
     rm_name = "robot_model"
-    human_model = pddlpy.DomainProblem(pddl_hm, pddl_prob)
-    robot_model = pddlpy.DomainProblem(pddl_rm, pddl_prob)
 
-    p = Problem(human_model, robot_model, hm_name, rm_name,
-                pddl_rm, pddl_prob, pddl_rplan, tmp_state_file)
+    total_time = 0
+    for i in range(1, 13):
+        test_folder += str(i)+"/"
 
-    start_time = time.time()
-    astarSearch(p)
-    elapsed_time = time.time() - start_time
-    print("Elapsed time: ", elapsed_time)
+        pddl_hm = test_folder + "human-model.pddl"
+        pddl_rm = test_folder + "robot-model.pddl"
+        pddl_prob = test_folder + "prob.pddl"
+        pddl_rplan = test_folder + "grounded_robot_plan"
+
+        human_model = pddlpy.DomainProblem(pddl_hm, pddl_prob)
+        robot_model = pddlpy.DomainProblem(pddl_rm, pddl_prob)
+
+        p = Problem(human_model, robot_model, hm_name, rm_name,
+                    pddl_rm, pddl_prob, pddl_rplan, tmp_state_file)
+
+        start_time = time.time()
+        astarSearch(p)
+        elapsed_time = time.time() - start_time
+        print("Elapsed time: ", elapsed_time)
+        total_time += elapsed_time
+        test_folder = models_folder + "blocksworld/blocks"
+
+        print("The avg time so far is: ", total_time/i)
+        print("-----------------------------------------------------")
 
     # ----------------------------  #
     # test_propositions_to_PDDL(human_model, robot_model, "human_model", "robot_model")
