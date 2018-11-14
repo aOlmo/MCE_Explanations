@@ -54,7 +54,6 @@ if __name__ == '__main__':
         print("The avg time so far is: ", total_time/i)
         print("-----------------------------------------------------")
 
-    # ----------------------------  #
     # test_propositions_to_PDDL(human_model, robot_model, "human_model", "robot_model")
 
 

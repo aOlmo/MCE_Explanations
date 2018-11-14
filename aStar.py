@@ -12,7 +12,12 @@ def astarSearch(problem):
     while not fringe.empty():
 
         node = fringe.get()[1]
-        goal_check, old_plan = problem.is_goal(node[0])
+        goal_check, feasibility_flag, old_plan = problem.is_goal(node[0])
+
+        # if not feasibility_flag:
+            # Search adding add_effects only
+            # pass
+
         if goal_check:
             print("Goal Found! Number of Nodes Expanded =", numberOfNodesExpanded)
             print("Explanations:"+str(node[1]))
@@ -23,7 +28,7 @@ def astarSearch(problem):
 
             closed.add(frozenset(node[0]))
 
-            successor_list = problem.getSuccessors(node, old_plan)
+            successor_list = problem.getSuccessors(node, feasibility_flag, old_plan)
 
             numberOfNodesExpanded += 1
 
