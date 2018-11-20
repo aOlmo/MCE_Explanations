@@ -1,5 +1,7 @@
+import random
 import pddlpy
 import time
+
 from aStar import astarSearch
 from Problem import Problem
 from Propositions import Propositions
@@ -21,7 +23,7 @@ def test_propositions_to_PDDL(human_model, robot_model, hm_name, rm_name):
 if __name__ == '__main__':
 
     models_folder = "models/"
-    test_folder = models_folder+"blocksworld/blocks"
+    test_folder = models_folder+"blocksworld/expl-2/"
     tmp_state_file = models_folder+"tmp_state.pddl"
 
     # Note: since we are using dynamic assignment of variables: hm_name and rm_name
@@ -30,9 +32,8 @@ if __name__ == '__main__':
     rm_name = "robot_model"
 
     total_time = 0
-    for i in range(1, 13):
-        test_folder += str(i)+"/"
-
+    for i in range(1):
+        # test_folder += str(i)+"/"
         pddl_hm = test_folder + "human-model.pddl"
         pddl_rm = test_folder + "robot-model.pddl"
         pddl_prob = test_folder + "prob.pddl"
@@ -49,10 +50,10 @@ if __name__ == '__main__':
         elapsed_time = time.time() - start_time
         print("Elapsed time: ", elapsed_time)
         total_time += elapsed_time
-        test_folder = models_folder + "blocksworld/blocks"
+        # test_folder = models_folder + "blocksworld/blocks"
 
-        print("The avg time so far is: ", total_time/i)
-        print("-----------------------------------------------------")
+        # print("The avg time so far is: ", total_time/i)
+        # print("-----------------------------------------------------")
 
     # test_propositions_to_PDDL(human_model, robot_model, "human_model", "robot_model")
 

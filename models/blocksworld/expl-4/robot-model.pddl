@@ -1,5 +1,5 @@
 (define (domain BLOCKS)
-  (:requirements :strips)
+  (:requirements :strips )
   (:types block)
   (:predicates (on ?x ?y)
 	       (ontable ?x)

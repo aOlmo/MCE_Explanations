@@ -1,5 +1,5 @@
 (define (domain BLOCKS)
-  (:requirements :strips)
+  (:requirements :strips )
   (:types block)
   (:predicates (on ?x ?y)
 	       (ontable ?x)
@@ -38,8 +38,4 @@
 	     :parameters (?x ?y)
 	     :precondition (and (on ?x ?y) (clear ?x) (handempty))
 	     :effect
-	     (and (holding ?x)
-		   (clear ?y)
-		   (not (clear ?x))
-		   (not (handempty))
-		   (not (on ?x ?y)))))
+	     (and (not (on ?x ?y)) )))
