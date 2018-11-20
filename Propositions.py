@@ -1,16 +1,17 @@
-template = """
-(define (domain BLOCKS)
-  (:requirements :strips)
-  (:predicates (on ?x ?y)
-           (ontable ?x)
-           (clear ?x)
-           (handempty)
-           (holding ?x))
-
-%OPERATORS%)
-"""
-
+# template = """
+# (define (domain BLOCKS)
+#   (:requirements :strips)
+#   (:predicates (on ?x ?y)
+#            (ontable ?x)
+#            (clear ?x)
+#            (handempty)
+#            (holding ?x))
+#
+# %OPERATORS%)
+# """
 # template = open("models/template.pddl").read()
+
+template = open("models/template_pathway_domain.pddl").read()
 
 class Propositions(object):
     def __init__(self, human_model, robot_model, hm_name, rm_name):
@@ -68,11 +69,10 @@ class Propositions(object):
     def propositions_to_pddl(self, propositions):
         actionList = {}
         for prop in propositions:
-            aux = prop.split("_")
-            action = aux[1]
-            add_del = aux[3]
-            effect_prec = aux[4]
-            objects = " ".join(aux[5:])
+            action = prop.replace("action_", "").split("_has")[0]
+            add_del = "add" if "_add_" in prop else "del"
+            effect_prec = "effect" if "_effect_" in prop else "precondition"
+            objects = prop.split(effect_prec+"_")[1]
 
             if not actionList.get(action):
                 actionList[action] = {

@@ -3,7 +3,7 @@ import copy
 from Propositions import Propositions
 
 class Problem(object):
-    def __init__(self, human_model, robot_model, hm_name, rm_name, pddl_rm, pddl_prob, pddl_rplan, tmp_state_file):
+    def __init__(self, human_model, robot_model, hm_name, rm_name, pddl_rm, pddl_prob, pddl_rplan, tmp_state_file, heuristic_flag):
         self.human_model = human_model
         self.robot_model = robot_model
         self.hm_name = hm_name
@@ -20,6 +20,8 @@ class Problem(object):
 
         self.cost = self.get_plan(pddl_rm, self.pddl_prob)[1]
         self.groundedRobotPlanFile = pddl_rplan
+
+        self.heuristic_flag = heuristic_flag
 
     def get_plan(self, domain, problem):
         output = os.popen("./scripts/fdplan.sh {} {}".format(domain, problem)).read().strip()
@@ -64,45 +66,41 @@ class Problem(object):
         optimality_flag = cost == self.cost
         return (optimality_flag, True, plan)
 
-    def getSuccessors(self, node, feasibility_flag, old_plan=None):
-        # if self.heuristic_flag:
-        #     return self.heuristic_successors(node, old_plan)
+    def getSuccessors(self, node, feasibility_flag):
         return self.ordinary_successors(node, feasibility_flag)
     
 
-    def ordinary_successors(self, node, feasibility_flag, old_plan = None):
+    def ordinary_successors(self, node, feasibility_flag):
         listOfSuccessors = []
-        validSuccessors = []
-        optSuccessors = []
-
-        effects = []
-        deletes = []
-        preconditions = []
-
         state = set(node[0])
         ground_state = set(copy.copy(self.goalState))
 
         add_set = ground_state.difference(state)
-        # del_set = state.difference(ground_state)
 
-        if not feasibility_flag:
-            for item in add_set:
-                if "add_effect" in item:
-                    new_state = copy.deepcopy(state)
-                    new_state.add(item)
-                    listOfSuccessors.append([list(new_state), item])
+        if self.heuristic_flag:
+            if not feasibility_flag:
+                for item in add_set:
+                    if "add_effect" in item:
+                        new_state = copy.deepcopy(state)
+                        new_state.add(item)
+                        listOfSuccessors.append([list(new_state), item])
 
+            else:
+                for item in add_set:
+                    if "precondition" in item:
+                        new_state = copy.deepcopy(state)
+                        new_state.add(item)
+                        listOfSuccessors.append([list(new_state), item])
+
+                    if "del_effect" in item:
+                        new_state = copy.deepcopy(state)
+                        new_state.add(item)
+                        listOfSuccessors.append([list(new_state), item])
         else:
             for item in add_set:
-                if "preconditions" in item:
-                    new_state = copy.deepcopy(state)
-                    new_state.add(item)
-                    listOfSuccessors.append([list(new_state), item])
-
-                if "del_effect" in item:
-                    new_state = copy.deepcopy(state)
-                    new_state.add(item)
-                    listOfSuccessors.append([list(new_state), item])
+                new_state = copy.deepcopy(state)
+                new_state.add(item)
+                listOfSuccessors.append([list(new_state), item])
 
         return listOfSuccessors
 

@@ -31,7 +31,7 @@
 	     :effect
 	     (and (not (holding ?x))
 		   (not (clear ?y))
-		   (clear ?x)
+		   ;(clear ?x)
 		   (handempty)
 		   (on ?x ?y)))
   (:action unstack
@@ -39,7 +39,7 @@
 	     :precondition (and (on ?x ?y) (clear ?x) (handempty))
 	     :effect
 	     (and (holding ?x)
-		   (clear ?y)
-		   (not (clear ?x))
-		   (not (handempty))
+		   ;(clear ?y)
+		   ;(not (clear ?x))
+		   ;(not (handempty))
 		   (not (on ?x ?y)))))

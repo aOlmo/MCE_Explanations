@@ -23,13 +23,14 @@ def test_propositions_to_PDDL(human_model, robot_model, hm_name, rm_name):
 if __name__ == '__main__':
 
     models_folder = "models/"
-    test_folder = models_folder+"blocksworld/expl-2/"
+    test_folder = models_folder+"test-domains/pathways-propositionl-strips/"
     tmp_state_file = models_folder+"tmp_state.pddl"
 
     # Note: since we are using dynamic assignment of variables: hm_name and rm_name
     # have to be the names of the human and robot models variables.
     hm_name = "human_model"
     rm_name = "robot_model"
+    heuristic = True
 
     total_time = 0
     for i in range(1):
@@ -43,7 +44,7 @@ if __name__ == '__main__':
         robot_model = pddlpy.DomainProblem(pddl_rm, pddl_prob)
 
         p = Problem(human_model, robot_model, hm_name, rm_name,
-                    pddl_rm, pddl_prob, pddl_rplan, tmp_state_file)
+                    pddl_rm, pddl_prob, pddl_rplan, tmp_state_file, heuristic)
 
         start_time = time.time()
         astarSearch(p)
