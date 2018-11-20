@@ -30,7 +30,7 @@ if __name__ == '__main__':
     # have to be the names of the human and robot models variables.
     hm_name = "human_model"
     rm_name = "robot_model"
-    heuristic = True
+    heuristic = False
 
     total_time = 0
     for i in range(1):

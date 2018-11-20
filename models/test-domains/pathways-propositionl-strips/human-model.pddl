@@ -226,13 +226,13 @@
 :precondition
 (and
 (num-subs_l2)
-;(not-chosen_p300)
+(not-chosen_p300)
 )
 :effect
 (and
 (chosen_p300)
 (num-subs_l3)
-;(not (not-chosen_p300))
+(not (not-chosen_p300))
 (not (num-subs_l2))
 )
 )
@@ -491,13 +491,13 @@
 :precondition
 (and
 (num-subs_l1)
-;(not-chosen_p300)
+(not-chosen_p300)
 )
 :effect
 (and
-;(chosen_p300)
+(chosen_p300)
 (num-subs_l2)
-;(not (not-chosen_p300))
+(not (not-chosen_p300))
 (not (num-subs_l1))
 )
 )
@@ -506,13 +506,13 @@
 :precondition
 (and
 (num-subs_l1)
-(not-chosen_pcaf)
+;(not-chosen_pcaf)
 )
 :effect
 (and
-(chosen_pcaf)
-(num-subs_l2)
-(not (not-chosen_pcaf))
+;(chosen_pcaf)
+;(num-subs_l2)
+;(not (not-chosen_pcaf))
 (not (num-subs_l1))
 )
 )
@@ -580,7 +580,7 @@
 :parameters ()
 :precondition
 (and
-(available_pcaf-p300)
+;(available_pcaf-p300)
 )
 :effect
 (and
@@ -675,7 +675,7 @@
 )
 :effect
 (and
-(available_pcaf-p300)
+;(available_pcaf-p300)
 (not (available_pcaf))
 (not (available_p300))
 )
@@ -850,7 +850,7 @@
 :parameters ()
 :precondition
 (and
-;(chosen_p300)
+(chosen_p300)
 )
 :effect
 (and
@@ -1066,14 +1066,14 @@
 :parameters ()
 :precondition
 (and
-(num-subs_l0)
+;(num-subs_l0)
 ;(not-chosen_p300)
 )
 :effect
 (and
 ;(chosen_p300)
 (num-subs_l1)
-;(not (not-chosen_p300))
+(not (not-chosen_p300))
 (not (num-subs_l0))
 )
 )
