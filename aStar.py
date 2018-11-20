@@ -28,7 +28,7 @@ def astarSearch(problem):
 
             numberOfNodesExpanded += 1
 
-            if not numberOfNodesExpanded % 10:
+            if not numberOfNodesExpanded % 50:
                 print("Number of Nodes Expanded =", numberOfNodesExpanded)
 
             while successor_list:
