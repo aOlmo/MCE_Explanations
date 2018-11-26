@@ -506,13 +506,13 @@
 :precondition
 (and
 (num-subs_l1)
-;(not-chosen_pcaf)
+(not-chosen_pcaf)
 )
 :effect
 (and
-;(chosen_pcaf)
-;(num-subs_l2)
-;(not (not-chosen_pcaf))
+(chosen_pcaf)
+(num-subs_l2)
+(not (not-chosen_pcaf))
 (not (num-subs_l1))
 )
 )
@@ -854,7 +854,7 @@
 )
 :effect
 (and
-;(available_p300)
+(available_p300)
 )
 )
 (:action INITIALIZE_PCAF

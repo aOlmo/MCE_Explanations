@@ -3,14 +3,15 @@ import copy
 from Propositions import Propositions
 
 class Problem(object):
-    def __init__(self, human_model, robot_model, hm_name, rm_name, pddl_rm, pddl_prob, pddl_rplan, tmp_state_file, heuristic_flag):
+    def __init__(self, human_model, robot_model, hm_name, rm_name, pddl_rm, pddl_prob, pddl_rplan,
+                 tmp_state_file, heuristic_flag, domain_template_file, objs_w_underscores):
         self.human_model = human_model
         self.robot_model = robot_model
         self.hm_name = hm_name
         self.rm_name = rm_name
         self.tmp_state_file = tmp_state_file
         self.pddl_prob = pddl_prob
-        self.props = Propositions(human_model, robot_model, hm_name, rm_name)
+        self.props = Propositions(human_model, robot_model, hm_name, rm_name, domain_template_file, objs_w_underscores)
 
         self.dist = self.props.get_distance()
 

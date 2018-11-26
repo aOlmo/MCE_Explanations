@@ -11,14 +11,14 @@
 # """
 # template = open("models/template.pddl").read()
 
-template = open("models/template_pathway_domain.pddl").read()
-
 class Propositions(object):
-    def __init__(self, human_model, robot_model, hm_name, rm_name):
+    def __init__(self, human_model, robot_model, hm_name, rm_name, domain_template_file, objs_w_underscores):
         self.human_model = human_model
         self.robot_model = robot_model
         self.hm_name = hm_name
         self.rm_name = rm_name
+        self.domain_template_file = open(domain_template_file).read()
+        self.objs_w_underscores = objs_w_underscores
 
         # Note: Assuming that H and R have the same parameters/actions
         self.parameters = self.get_parameters(human_model)
@@ -72,7 +72,10 @@ class Propositions(object):
             action = prop.replace("action_", "").split("_has")[0]
             add_del = "add" if "_add_" in prop else "del"
             effect_prec = "effect" if "_effect_" in prop else "precondition"
-            objects = prop.split(effect_prec+"_")[1]
+            objects = prop.split(effect_prec + "_")[1]
+
+            if not self.objs_w_underscores:
+                objects = objects.replace("_", " ")
 
             if not actionList.get(action):
                 actionList[action] = {
@@ -102,7 +105,7 @@ class Propositions(object):
                                                  ['(not ({})) '.format(p) for p in actionList[key]['delete-effect']])))
                                   for key in actionList.keys()])
 
-        return template.replace('%OPERATORS%', actionString)
+        return self.domain_template_file.replace('%OPERATORS%', actionString)
 
     def get_propositions_in_array(self, propositions_dict):
         ret = []

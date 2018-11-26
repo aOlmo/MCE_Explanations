@@ -854,7 +854,7 @@
 )
 :effect
 (and
-;(available_p300)
+(available_p300)
 )
 )
 (:action INITIALIZE_PCAF
