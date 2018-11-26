@@ -4,3 +4,7 @@
 3. Make deletions of effects and/or preconditions to `robot-model.pddl` and save them in a new file called `human-model.pddl`
 4. Create the template that the algorithm will use (look at Propositions.py for more info)
 5. Modify the names of the folders accordingly in `main.py`
+
+### Resources
+* PDDL online editor: http://editor.planning.domains/
+* More domains https://github.com/potassco/pddl-instances/
