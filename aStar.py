@@ -8,16 +8,17 @@ def astarSearch(problem):
 
     fringe.put((problem.heuristic(startState), [startState, []]))
 
-    print("Running aStar Search...")
+    print("\nRunning aStar Search...")
     while not fringe.empty():
 
         node = fringe.get()[1]
         goal_check, feasibility_flag, old_plan = problem.is_goal(node[0])
 
         if goal_check:
-            print("Goal Found! Number of Nodes Expanded =", numberOfNodesExpanded)
-            print("Explanations:"+str(node[1]))
-            print("# Explanations: ", len(node[1]))
+            print("Goal Found! # of nodes expanded = {} # of explanations = {} ".format(numberOfNodesExpanded, len(node[1])))
+            for i, xpl in enumerate(node[1]):
+                print("Explanation {} >> {}".format(i+1, xpl))
+            print("")
             return node[1]
 
         if frozenset(node[0]) not in closed:
