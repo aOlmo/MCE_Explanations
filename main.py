@@ -64,26 +64,18 @@ def search_explanations(xpl_folder, heuristic_flag, domain_template_file, objs_w
 
         x.add_row([len(expls), str(round(elapsed_time, 2)) + "s"])
         print(x)
-        print("")
-        print("-------------------------------------------- ")
+        print("\n--------------------------------------------")
 
 
 if __name__ == '__main__':
 
-    heuristic_flag = True
-    obj_names_with_underscores_flag = True
-    domain_template_file = "models/template_pathway_domain.pddl"
-    xpl_folder = models_folder + "test-domains/pathways-propositionl-strips/expl-"
-    search_explanations(xpl_folder, heuristic_flag, domain_template_file, obj_names_with_underscores_flag)  #TODO-A: Get the table to fill from this function
+    heuristic_flag = [True, False]
+    domain_template_files = ["models/template_pathway_domain.pddl", "models/template.pddl"]
+    xpl_folders = [models_folder + "test-domains/pathways-propositionl-strips/expl-",
+                   models_folder + "blocksworld/expl-"]
 
-    heuristic_flag = False
-    search_explanations(xpl_folder, heuristic_flag, domain_template_file, obj_names_with_underscores_flag)
+    for h in heuristic_flag:
+        for dom_tmpl_fl, xpl_fd in zip(domain_template_files, xpl_folders):
+            obj_names_w_undrsc = True if "pathway" in dom_tmpl_fl else False
+            search_explanations(xpl_fd, h, dom_tmpl_fl, obj_names_w_undrsc)
 
-    heuristic_flag = True
-    obj_names_with_underscores_flag = False
-    domain_template_file = "models/template.pddl"
-    xpl_folder = models_folder + "blocksworld/expl-"
-    search_explanations(xpl_folder, heuristic_flag, domain_template_file, obj_names_with_underscores_flag)
-
-    heuristic_flag = False
-    search_explanations(xpl_folder, heuristic_flag, domain_template_file, obj_names_with_underscores_flag)
