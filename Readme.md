@@ -8,3 +8,10 @@
 ### Resources
 * PDDL online editor: http://editor.planning.domains/
 * More domains https://github.com/potassco/pddl-instances/
+
+### Dependencies
+* Python 3+: A version of Python 3 or above.
+* Pddlpy: Library made for converting PDDL models in Python objects (more tractable format).
+* Fast Downward: Planner used to generate the plans given the domain and problem files.
+* VAL: Validator that checks for the plan's feasibility.
+* PrettyTable: Needed for the outputs.
