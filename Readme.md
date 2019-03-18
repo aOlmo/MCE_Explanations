@@ -17,4 +17,4 @@
 * PrettyTable: Needed for the outputs.
 
 ### Contributors
-* (https://github.com/zahrazahedi28)[Zahra Zahedi] was also a contributor to this project. 
+* [Zahra Zahedi](https://github.com/zahrazahedi28) was also a contributor to this project. 
