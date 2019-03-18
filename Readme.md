@@ -15,3 +15,6 @@
 * Fast Downward: Planner used to generate the plans given the domain and problem files.
 * VAL: Validator that checks for the plan's feasibility.
 * PrettyTable: Needed for the outputs.
+
+### Contributors
+* [https://github.com/zahrazahedi28](Zahra Zahedi) was also a contributor to this project. 
